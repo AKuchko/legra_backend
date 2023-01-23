@@ -2,7 +2,7 @@ const { Router }    = require('express')
 const database      = require('../database/db.connect')
 const router        = new Router()
 
-// router.use(require('../middleware/auth.middleware'))
+router.use(require('../middleware/auth.middleware'))
 
 router.get('/user/:user_id', async (req, res) => {
     try {

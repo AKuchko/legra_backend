@@ -1,9 +1,15 @@
+const jwt = require('jsonwebtoken')
+
 function checkAuth(req, res, next) {
-    if (req.params.is_auth) {
+    try {
+        const token = req.cookies.access
+        const user = jwt.verify(token,  `${process.env.JWT_SECRET}`)
+        req.user = user
         next()
     }
-    else {
-        res.json({ error: '401 not authorized' })
+    catch (err) {
+        res.clearCookie('access')
+        return res.status(401).json({ error: 'unathtorized' })
     }
 }
 
