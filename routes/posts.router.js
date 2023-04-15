@@ -36,7 +36,6 @@ router.get('/user/:user_id', async (req, res) => {
             post.profile_image  = ImageUtil.ConvertToBase64(post.profile_image, 'image/jpeg')
         }
 
-
         res.status(200).json(user_posts)
     }
     catch (err) {
@@ -52,7 +51,8 @@ router.post(
             { name: 'post_media', maxCount: 10 }, 
             { name: 'post_cropper', maxCount: 10 }, 
             { name: 'post_caption', maxCount: 1 }
-        ]), 
+        ]
+    ), 
     async (req, res) => {
         try {
             const insert_post_query     = 'INSERT INTO post (post_id, user_id, caption, created) VALUES (?, ?, ?, ?)'   // Запрос на созддание поста

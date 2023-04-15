@@ -21,10 +21,11 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
-app.use('/users', require('./routes/users.router'))
-app.use('/posts', require('./routes/posts.router'))
+app.use('/api/users', require('./routes/users.router'))
+app.use('/api/posts', require('./routes/posts.router'))
 app.use('/api/auth', require('./routes/auth.router'))
+app.use('/api/comment', require('./routes/comment.router'))
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Legram app listening on port ${port}`)
 })
