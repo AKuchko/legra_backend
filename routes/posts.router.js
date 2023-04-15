@@ -87,7 +87,6 @@ router.post(
             res.status(201).json({ message: 'created' })
         }
         catch (err) {
-            console.log(err);
             res.status(500).json({ error: err })
         }
     }
