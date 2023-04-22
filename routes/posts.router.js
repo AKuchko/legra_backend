@@ -12,9 +12,9 @@ router.use(require('../middleware/auth.middleware'))
 // Получение постов юзера
 router.get('/user/:user_id', async (req, res) => {
     try {
-        const posts_query       = 'SELECT post.*, user.user_name, user.profile_image FROM post INNER JOIN user ON post.user_id = user.user_id AND post.user_id = ?'    // запрос на получение постов
-        const media_query       = 'SELECT media, ext FROM post_media WHERE post_id = ?' // запрос на медиа файлы поста
-        const comment_query     = 'SELECT comment.*, user.user_name, user.profile_image FROM comment INNER JOIN user ON comment.user_id = user.user_id and comment.post_id = ?' // запрос на комментарии поста
+        const posts_query = 'SELECT post.*, user.user_name, user.profile_image FROM post INNER JOIN user ON post.user_id = user.user_id AND post.user_id = ?'    // запрос на получение постов
+        const media_query = 'SELECT media, ext FROM post_media WHERE post_id = ?' // запрос на медиа файлы поста
+        // const comment_query = 'SELECT comment.*, user.user_name, user.profile_image FROM comment INNER JOIN user ON comment.user_id = user.user_id and comment.post_id = ?' // запрос на комментарии поста
 
         const user_id = req.params.user_id
 
@@ -22,17 +22,17 @@ router.get('/user/:user_id', async (req, res) => {
 
         for (let post of user_posts) {
             // Для каждого поста запрашиваем список медиафайлов и комментарев
-            post_media      = await database.query(media_query, [post.post_id])
-            post_comments   = await database.query(comment_query, [post.post_id])
+            post_media    = await database.query(media_query, [post.post_id])
+            // post_comments = await database.query(comment_query, [post.post_id])
 
             // ддля каждого комментария конвертируем изображение профииля в нужный фооррмат
-            for (comment of post_comments) {
-                comment.profile_image = ImageUtil.ConvertToBase64(comment.profile_image, 'image/jpeg')
-            }
+            // for (comment of post_comments) {
+            //     comment.profile_image = ImageUtil.ConvertToBase64(comment.profile_image, 'image/jpeg')
+            // }
 
             // добавляем информацию к посту
             post.media          = post_media.map(media => ImageUtil.ConvertToBase64(media.media, media.ext))
-            post.comments       = post_comments
+            // post.comments       = post_comments
             post.profile_image  = ImageUtil.ConvertToBase64(post.profile_image, 'image/jpeg')
         }
 
@@ -40,6 +40,26 @@ router.get('/user/:user_id', async (req, res) => {
     }
     catch (err) {
         res.status(404).json({error: err})
+    }
+})
+
+router.get('/post/:post_id', async (req, res) => {
+    try {
+        const get_post_query = 'SELECT post.*, user.user_name, user.profile_image FROM post INNER JOIN user ON post.post_id = ? AND user.user_id = post.user_id'
+        const media_query = 'SELECT media, ext FROM post_media WHERE post_id = ?'
+        const post_id = req.params.post_id
+        const [ post ] = await database.query(get_post_query, [post_id])
+
+        if (!post) return res.status(404).json({ message: "This post not found"})
+
+        post_media = await database.query(media_query, [post_id])
+
+        post.media = post_media.map(media => ImageUtil.ConvertToBase64(media.media, media.ext))
+
+        res.status(200).json(post)
+    }
+    catch (err) {
+        res.status(500).json({ error: err })
     }
 })
 
@@ -121,50 +141,6 @@ router.delete('/:id', async (req, res) => {
     }
     catch (err) {
         res.status(204).json({ error: err })
-    }
-})
-
-// Создание комментария 
-router.post('/comment', async (req, res) => {
-    try {
-        const { post_id, user_id, comment_text } = req.body
-        const create_post_query = 'INSERT INTO comment VALUES (?, ?, ?, ?)'
-        await database.query(create_post_query, [null, post_id, user_id, comment_text])
-        res.status(201)
-    }
-    catch (err) {
-        res.status(400).json({ error: err })
-    }
-})
-
-// Изменение комментария
-router.put('/comment/:id', async (req, res) => {
-    try {
-        const update_comment_query = 'UPDATE comment SET comment_text = ? WHERE comment_id = ?'
-        const comment_id = req.params.id
-        const { comment_text } = req.body
-
-        await database.query(update_comment_query, [ comment_text, comment_id ])
-
-        res.status(204).json({ message: 'updated' })
-    }
-    catch (err) {
-        res.status(500).json({ error: err })
-    }
-})
-
-// Удаление комментария
-router.delete('/comment/:id', async (req, res) => {
-    try {
-        const delete_comment_query = 'DELETE FROM comment WHERE comment_id = ?'
-        const comment_id = req.params.id
-
-        await database.query(delete_comment_query, [ comment_id ])
-
-        res.status(204).json({ message: 'deleted' })
-    }
-    catch (err) {
-        res.status(500).json({ error: err })
     }
 })
 
