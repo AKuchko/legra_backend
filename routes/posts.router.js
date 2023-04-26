@@ -14,7 +14,6 @@ router.get('/user/:user_id', async (req, res) => {
     try {
         const posts_query = 'SELECT post.*, user.user_name, user.profile_image FROM post INNER JOIN user ON post.user_id = user.user_id AND post.user_id = ?'    // запрос на получение постов
         const media_query = 'SELECT media, ext FROM post_media WHERE post_id = ?' // запрос на медиа файлы поста
-        // const comment_query = 'SELECT comment.*, user.user_name, user.profile_image FROM comment INNER JOIN user ON comment.user_id = user.user_id and comment.post_id = ?' // запрос на комментарии поста
 
         const user_id = req.params.user_id
 
@@ -23,16 +22,9 @@ router.get('/user/:user_id', async (req, res) => {
         for (let post of user_posts) {
             // Для каждого поста запрашиваем список медиафайлов и комментарев
             post_media    = await database.query(media_query, [post.post_id])
-            // post_comments = await database.query(comment_query, [post.post_id])
-
-            // ддля каждого комментария конвертируем изображение профииля в нужный фооррмат
-            // for (comment of post_comments) {
-            //     comment.profile_image = ImageUtil.ConvertToBase64(comment.profile_image, 'image/jpeg')
-            // }
 
             // добавляем информацию к посту
             post.media          = post_media.map(media => ImageUtil.ConvertToBase64(media.media, media.ext))
-            // post.comments       = post_comments
             post.profile_image  = ImageUtil.ConvertToBase64(post.profile_image, 'image/jpeg')
         }
 
