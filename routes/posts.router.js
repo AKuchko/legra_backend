@@ -12,8 +12,11 @@ router.use(require('../middleware/auth.middleware'))
 // Получение постов юзера
 router.get('/user/:user_id', async (req, res) => {
     try {
-        const posts_query = 'SELECT post.*, user.user_name, user.profile_image FROM post INNER JOIN user ON post.user_id = user.user_id AND post.user_id = ?'    // запрос на получение постов
-        const media_query = 'SELECT media, ext FROM post_media WHERE post_id = ?' // запрос на медиа файлы поста
+        const posts_query = 'SELECT post.*, user.user_name, user.profile_image \
+                            FROM post \
+                            INNER JOIN user \
+                            ON post.user_id = user.user_id AND post.user_id = ?'    // запрос на получение постов
+        const media_query = 'SELECT media_id, data, ext FROM post_media WHERE post_id = ?' // запрос на медиа файлы поста
 
         const user_id = req.params.user_id
 
@@ -24,7 +27,12 @@ router.get('/user/:user_id', async (req, res) => {
             post_media    = await database.query(media_query, [post.post_id])
 
             // добавляем информацию к посту
-            post.media          = post_media.map(media => ImageUtil.ConvertToBase64(media.media, media.ext))
+            post.media = post_media.map(media => {
+                const temp_media = ImageUtil.ConvertToBase64(media.data, media.ext)
+                media.data = temp_media
+                delete media.ext
+                return media
+            })
             post.profile_image  = ImageUtil.ConvertToBase64(post.profile_image, 'image/jpeg')
         }
 
@@ -37,16 +45,24 @@ router.get('/user/:user_id', async (req, res) => {
 
 router.get('/post/:post_id', async (req, res) => {
     try {
-        const get_post_query = 'SELECT post.*, user.user_name, user.profile_image FROM post INNER JOIN user ON post.post_id = ? AND user.user_id = post.user_id'
-        const media_query = 'SELECT media, ext FROM post_media WHERE post_id = ?'
+        const get_post_query = 'SELECT post.*, user.user_name, user.profile_image \
+                                FROM post \
+                                INNER JOIN user \
+                                ON post.post_id = ? AND user.user_id = post.user_id'
+        const media_query = 'SELECT media_id, data, ext FROM post_media WHERE post_id = ?'
         const post_id = req.params.post_id
+
         const [ post ] = await database.query(get_post_query, [post_id])
 
         if (!post) return res.status(404).json({ message: "This post not found"})
 
         post_media = await database.query(media_query, [post_id])
-
-        post.media = post_media.map(media => ImageUtil.ConvertToBase64(media.media, media.ext))
+        post.media = post_media.map(media => {
+            const temp_media = ImageUtil.ConvertToBase64(media.data, media.ext)
+            media.data = temp_media
+            delete media.ext
+            return media
+        })
 
         res.status(200).json(post)
     }
@@ -67,19 +83,20 @@ router.post(
     ), 
     async (req, res) => {
         try {
-            const insert_post_query     = 'INSERT INTO post (post_id, user_id, caption, created) VALUES (?, ?, ?, ?)'   // Запрос на созддание поста
-            const insert_media_query    = 'INSERT INTO post_media VALUES (?, ?, ?, ?)' // Запрос на создание медиа для поста
+            const insert_post_query     = 'INSERT INTO post VALUES (?, ?, ?, ?, ?, ?)'   // Запрос на созддание поста (post_id, user_id, chat_id, caption, likes, created)
+            const insert_media_query    = 'INSERT INTO post_media VALUES (?, ?, ?, ?)' // Запрос на создание медиа для поста (media_id, post_id, data, ext)
+            const create_comment_chat   = 'INSERT INTO chat VALUES (?, ?)' // Запрос для создания чата (chat_id, private)
 
             const { post_caption, post_cropper }  = req.body
             const { post_media }    = req.files
             const user_id           = req.user.user_id
             const date              = new Date().toISOString().slice(0, 19).replace('T', ' ')
-            
-            const cropp_data = JSON.parse(post_cropper)
+            const cropp_data        = JSON.parse(post_cropper)
 
             if (!post_media) return res.status(400).json({ error: 'Empty post media' })
 
-            const post_info = await database.query(insert_post_query, [ null, user_id, post_caption, date ]) // создаем запись о посте
+            const comment_chat = await database.query(create_comment_chat, [null, 0])
+            const post_info = await database.query(insert_post_query, [ null, user_id, comment_chat.insertId, post_caption, 0, date ]) // создаем запись о посте
 
             // // создаем новую запись в базе данных для каждого загруженного файла
             for (let i = 0; i < post_media.length; i++) {
@@ -89,11 +106,12 @@ router.post(
                     width: Math.round(cropp_data[i].width),
                     height: Math.round(cropp_data[i].height),
                 }
-                const { data, info } = await sharp(post_media[i].buffer)
-                                            .extract(sharp_options)
-                                            .toBuffer({ resolveWithObject: true })
+                const {data, info} = await sharp(post_media[i].buffer)
+                    .toFormat('webp')
+                    .extract(sharp_options)
+                    .toBuffer({ resolveWithObject: true })
 
-                await database.query(insert_media_query, [ null, post_info.insertId, data, post_media[i].mimetype ])
+                await database.query(insert_media_query, [ null, post_info.insertId, data, 'image/webp' ])
             }
 
             res.status(201).json({ message: 'created' })
