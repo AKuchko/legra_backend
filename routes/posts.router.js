@@ -141,10 +141,8 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const delete_post_query     = 'DELETE FROM post WHERE post_id = ?'
-        const delete_media_query    = 'DELETE FROM post_media WHERE post_id = ?'
         const post_id               = req.params.id
     
-        await database.query(delete_media_query, [ post_id ])
         await database.query(delete_post_query, [ post_id ])
     
         res.status(204).json({ message: 'Deleted' })

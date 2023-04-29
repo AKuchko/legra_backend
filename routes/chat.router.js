@@ -84,7 +84,6 @@ router.post(
                 socket_msg.media.push({ data: ImageUtil.ConvertToBase64(data, 'image/jpeg'), media_id: new_media.insertId })
             }
 
-            console.log(socket_msg);
             io.emit(`message:add:${chat_id}`, socket_msg)
             res.status(200).json({ ok: 'ok' })
         }
@@ -93,5 +92,19 @@ router.post(
         }
     }
 )
+
+router.delete('/message/delete/:message_id', async (req, res) => {
+    try {
+        const delete_message = 'DELETE FROM message WHERE message_id = ?'
+        const { message_id } = req.params;
+
+        await database.query(delete_message, [message_id])
+
+        res.status(204).json({ message: 'deleted' })
+    }
+    catch (err) {
+        res.status(500).json({ err })
+    }
+})
 
 module.exports = router

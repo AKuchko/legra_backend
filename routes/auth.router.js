@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
         delete user.password
         delete user.profile_image
 
-        const token_access  = jwt.sign(user, JWT_SECRET, { expiresIn: '10m' })
+        const token_access  = jwt.sign(user, JWT_SECRET, { expiresIn: '1h' })
         const token_refresh = jwt.sign(user, JWT_SECRET, { expiresIn: '1h' })
         
         res.status(200).json({ access: token_access, refresh: token_refresh })
@@ -66,8 +66,8 @@ router.post('/refresh', async (req, res) => {
         delete user.iat
         delete user.exp
         
-        const token_access  = jwt.sign(user, JWT_SECRET, { expiresIn: '10m' })
-        const token_refresh = jwt.sign(user, JWT_SECRET, { expiresIn: '1h' })
+        const token_access  = jwt.sign(user, JWT_SECRET, { expiresIn: '1h' })
+        const token_refresh = jwt.sign(user, JWT_SECRET, { expiresIn: '2h' })
 
         res.status(200).json({ access: token_access, refresh: token_refresh })
     }
