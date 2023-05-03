@@ -9,7 +9,7 @@ const router        = new Router()
 router.post('/reg', async (req, res) => {
     try {
         const check_register_query  = 'SELECT count(user_id) as count FROM user WHERE email = ?'
-        const insert_user_query     = 'INSERT INTO user VALUES (?, ?, ?, ?, ?)'
+        const insert_user_query     = 'INSERT INTO user VALUES (?, ?, ?, ?, ?, ?, ?)'
 
         const { email, password } = req.body
 
@@ -23,7 +23,7 @@ router.post('/reg', async (req, res) => {
 
         const hash = await bcrypt.hash(password, 11)
 
-        await database.query(insert_user_query, [ null, email, hash, 'Username', '@_username' ])
+        await database.query(insert_user_query, [ null, email, hash, 'Username', '@_username', null, null ])
 
         res.status(201).json({ message: 'Created' })
     }
@@ -49,7 +49,7 @@ router.post('/login', async (req, res) => {
         delete user.profile_image
 
         const token_access  = jwt.sign(user, JWT_SECRET, { expiresIn: '1h' })
-        const token_refresh = jwt.sign(user, JWT_SECRET, { expiresIn: '1h' })
+        const token_refresh = jwt.sign(user, JWT_SECRET, { expiresIn: '2h' })
         
         res.status(200).json({ access: token_access, refresh: token_refresh })
     }

@@ -15,6 +15,7 @@ router.get('/id/:id', async (req, res) => {
         const [user] = await database.query(get_user_query, [ user_id ])
 
         user.profile_image = imageUtil.ConvertToBase64(user.profile_image)
+        delete user.password
 
         res.status(200).json(user)
     }
@@ -35,7 +36,7 @@ router.get('/me', async (req, res) => {
         if (!user) res.status(404).json({ error: `404 [not found]: ${err}` })
 
         // конвертиуем фото пофиля и удаляем поля с важной информацией
-        user.profile_image = imageUtil.ConvertToBase64(user.profile_image)
+        if (user.profile_image) user.profile_image = imageUtil.ConvertToBase64(user.profile_image)
         delete user.password
 
         res.status(200).json(user)
