@@ -1,8 +1,8 @@
 module.exports = {
     HOST: 'localhost',
-    DB_USER: 'data_reader',
-    DB_PASSWORD: 'vuepass',
-    DATABASE: 'legra',
+    DB_USER: 'alex',
+    DB_PASSWORD: 'rootpass',
+    DATABASE: 'legra_v2',
     dialect: 'mysql',
     pool: {
         max: 5,

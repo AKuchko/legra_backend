@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const sharp = require('sharp')
 
 class ImageUtil {
     readFile(_path) {
@@ -28,6 +29,17 @@ class ImageUtil {
 
     getDefaultImage() {
         return this.readFile('assets/gray.png')
+    }
+
+    async ExtractImage(_buff, _options) {
+        let sharp_options = { left: Math.round(_options.x), top: Math.round(_options.y), width: Math.round(_options.width), height: Math.round(_options.height) }
+        const { data, info } = await sharp(_buff).toFormat('jpeg').extract(sharp_options).toBuffer({ resolveWithObject: true })
+        return { data, size: info.size }
+    }
+
+    async CompressImage(_buff) {
+        const { data, info} = await sharp(_buff).jpeg({ quality: 70, mozjpeg: true }).toBuffer({ resolveWithObject: true })
+        return { data, size: info.size }
     }
 }
 
