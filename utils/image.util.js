@@ -31,9 +31,9 @@ class ImageUtil {
         return this.readFile('assets/gray.png')
     }
 
-    async ExtractImage(_buff, _options) {
+    async ExtractImage(_buff, _options, _ext='jpeg') {
         let sharp_options = { left: Math.round(_options.x), top: Math.round(_options.y), width: Math.round(_options.width), height: Math.round(_options.height) }
-        const { data, info } = await sharp(_buff).toFormat('jpeg').extract(sharp_options).toBuffer({ resolveWithObject: true })
+        const { data, info } = await sharp(_buff).toFormat(_ext).extract(sharp_options).toBuffer({ resolveWithObject: true })
         return { data, size: info.size }
     }
 

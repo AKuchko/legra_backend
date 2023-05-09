@@ -6,6 +6,7 @@ const SELECT_MESSAGES = 'SELECT message.*, user.user_name, user.profile_image FR
 const SELECT_MESSAGE = 'SELECT message.*, user.user_name, user.profile_image FROM message INNER JOIN user ON message.from_id = user.user_id AND message.message_id = ?;'
 const SELECT_MSG_REPLY = 'SELECT messag_id FROM message WHERE reply_message_id = ?;'
 const SELECT_FORWARD = 'SELECT * FROM forward WHERE forward_id = ?;'
+const SELECT_LAST_MSG = 'SELECT message, created FROM message WHERE chat_id = ? ORDER BY created DESC LIMIT 1'
 const INSERT_MESSAGE = 'INSERT INTO message VALUES (?, ?, ?, ?, ?, ?, ?, ?);'
 const INSERT_FORWARD = 'INSERT INTO forward VALUES (NULL, ?, ?, ?, ?);'
 const UPDATE_MESSAGE = 'UPDATE message SET message = ? WHERE message_id = ?;'
@@ -66,10 +67,15 @@ const deleteMessage = async ({ message_id }) => {
     await db.query(DELETE_FORWARD, [ message_id ])
     await db.query(DELETE_MESSAGE, [ message_id ])
 }
+const selectLastMessage = async ({ chat_id }) => {
+    const [ msg ] = await db.query(SELECT_LAST_MSG, [ chat_id ])
+    return msg
+}
 
 module.exports = {
     selectMessages,
     selectMessage,
+    selectLastMessage,
     createMessage,
     createForward,
     updateMessageText,

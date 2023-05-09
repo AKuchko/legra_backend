@@ -50,7 +50,6 @@ const deleteLike = async ({ user_id, post_id }) => {
 }
 const selectCommentsCount = async ({ post_id }) => {
     const [{count}] = await db.query(SELECT_COMMENTS_COUNT, [post_id])
-    console.log(count);
     return count
 }
 

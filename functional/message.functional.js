@@ -1,6 +1,7 @@
 const ImageUtil     = require('../utils/image.util')
 const { selectMessage, selectMessages, createMessage, updateMessageText, deleteMessage } = require('./common/message.func')
-const { createMedia, createMediaData, selectMedia } = require('../functional/common/media.func')
+const { createMedia, createMediaData } = require('../functional/common/media.func')
+const { createPersonalChat, createChatMember } = require('./common/chat.func')
 const io = require('../socket').getIo()
 
 const getChatMessages = async (req, res) => {
@@ -16,39 +17,42 @@ const getChatMessages = async (req, res) => {
 }
 const createNewMessage = async (req, res) => {
     try {
-        console.log(req.user);
         const { chat_id, message, forward_obj, reply_message_id } = req.body
         const { media } = req.files
         const { user_id, user_name, profile_image } = req.user
+        const meta = JSON.parse(req.body.meta)
         const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
-        // const socket_msg = {}
+
+        console.log(meta);
+
         let forward_id = null
         let media_id = null
+        let _chat_id = chat_id
         let reply_msg_id = reply_message_id === 'undefined' ? null : reply_message_id
 
         if (!chat_id || (!message & !media & !forward_obj)) return res.status(400).json({ err: 'empty message or chat not exist'})
         if (forward_obj) forward_id = await createForward({ forward_obj }) 
         if (media) media_id = await createMedia()
-        const message_id = await createMessage({ user_id, chat_id, media_id, reply_message_id: reply_msg_id, message, forward_id, date })
 
-        // socket_msg.message_id = message_id
-        // socket_msg.message = message
-        // socket_msg.chat_id = chat_id
-        // socket_msg.from_id = user_id
-        // socket_msg.user_name = user_name
-        // socket_msg.profile_image = await selectMedia({ media_id: profile_image })
-        // socket_msg.media = []
+        if (chat_id === 'undefined') {
+            _chat_id = await createPersonalChat() 
+            await createChatMember({ user_id: meta.to, chat_id: _chat_id })
+            await createChatMember({ user_id, chat_id: _chat_id })
+        }
         
+        const message_id = await createMessage({ user_id, chat_id: _chat_id, media_id, reply_message_id: reply_msg_id, message, forward_id, date })
         const media_length = media ? media.length : 0
 
         for (let i = 0; i < media_length; i++){
             const { data, size } = await ImageUtil.CompressImage(media[i].buffer)
-            const new_media = await createMediaData({ media_id, data, meme_type: 'image/jpeg', size })
-            // socket_msg.media.push({ data: ImageUtil.ConvertToBase64(data, 'image/jpeg'), meme_type: 'image/jpeg', size })
+            await createMediaData({ media_id, data, meme_type: 'image/jpeg', size })
         }
 
         const socket_msg = await selectMessage({ message_id })
-        io.emit(`message:add:${chat_id}`, socket_msg)
+
+        if (chat_id === 'undefined') io.emit(`chat:start:${meta.to}`, { chat_id: _chat_id, message: socket_msg })
+        else io.emit(`message:add:${chat_id}`, socket_msg)
+        
         res.status(200).json({ ok: 'ok' })
     }
     catch (err) {
