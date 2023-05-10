@@ -30,15 +30,17 @@ const updateUser = async (req, res) => {
         const { user_name, description, crop_data } = req.body
         const { user_id } = req.user
         const { profile_image } = req.files
-        const crop_options =  JSON.parse(crop_data)
+        const crop_options =  crop_data === 'undefined' ? null : JSON.parse(crop_data)
 
         if (!user_name & !description) return res.status(400).json({ message: 'no changes' })
         if (!profile_image) {
+            console.log('update info');
             const profile_name = '@' + user_name.toLowerCase().split(' ').join('')
             await updateUserInfo({ user_id, user_name, description, profile_name })
             res.status(201).json({ profile_name, user_name, description })
         }
         else {
+            console.log('update image');
             const media_id = req.user.profile_image
             const ext = profile_image[0].mimetype.split('/')[1]
             const { data, size } = await ExtractImage(profile_image[0].buffer, crop_options, ext)
