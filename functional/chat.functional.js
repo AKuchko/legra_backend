@@ -7,13 +7,11 @@ const getPesonalChat = async (req, res) => {
     try {
         const member1_id = req.user.user_id
         const member2_id = req.params.user_id
+
         const user = await selectUser({ user_id: member2_id })
-        console.log(user);
-       
         if (!user) return res.status(404).json({ message: 'user not exist' })
 
         const personal_chat = await selectPersonalChat(member1_id, member2_id)
-
         if (!personal_chat) {
             const chat = {
                 chat_name: user.user_name,

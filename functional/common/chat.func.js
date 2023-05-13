@@ -30,13 +30,14 @@ const createPersonalChat = async () => {
 }
 const selectPersonalChat = async (member1_id, member2_id) => {
     const [ pers_chat ] = await db.query(SELECT_PERSONAL_CHAT, [ member1_id, member2_id ])
+    pers_chat.chat_image = pers_chat.chat_image ? await selectMedia({ media_id: pers_chat.chat_image }) : null
     return pers_chat
 }
 const selectUserChats = async ({ user_id }) => {
     const chats = await db.query(SELECT_USER_CHATS, [ user_id ])
     for (let chat of chats) {
         chat.last_message = await selectLastMessage({  chat_id: chat.chat_id })
-        chat.chat_image = await selectMedia({ media_id: chat.chat_image })
+        chat.chat_image = chat.chat_image ? await selectMedia({ media_id: chat.chat_image }) : null
     }
     return chats
 }
