@@ -1,5 +1,4 @@
 const { Router }    = require('express')
-const database      = require('../database/db.connect')
 const router        = new Router()
 const multer = require('multer')
 const upload = multer()

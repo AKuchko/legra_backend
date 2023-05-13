@@ -12,9 +12,7 @@ const connection = mysql.createConnection({
 connection.query = util.promisify(connection.query).bind(connection);
 
 connection.connect(err => {
-    if (err) {
-        console.error(err);
-    }
+    if (err) console.error(err);
 })
 
 module.exports = connection
