@@ -33,6 +33,9 @@ const createPost = async ({ user_id, media_id, caption }) => {
     const date = new Date().toISOString().slice(0, 19).replace('T', ' ')
     return await db.query(INSERT_POST, [ user_id, media_id, caption, date ])
 }
+const deletePost = async ({ post_id }) => {
+    await db.query(DELETE_POST, [post_id])
+}
 const selectLikes = async ({ post_id }) => {
     const likes = await db.query(SELECT_LIKES, [ post_id ])
     for (let like of likes) like.profile_image = await selectMedia({ media_id: like.profile_image })
@@ -57,6 +60,7 @@ module.exports = {
     selectPosts,
     selectPost,
     createPost,
+    deletePost,
     selectLike,
     createLike,
     deleteLike,

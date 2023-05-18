@@ -5,7 +5,7 @@ const { selectMedia } = require('./media.func')
 const SELECT_PERSONAL_CHAT = 'SELECT m1.chat_id, user.user_name as chat_name, user.profile_image as chat_image FROM chat_member m1 INNER JOIN chat_member m2 ON  (m2.user_id = ?) INNER JOIN user ON user.user_id = m1.user_id WHERE m1.user_id = ? AND m1.chat_id = m2.chat_id;'
 const INSERT_PERSONAL_CHAT = 'INSERT INTO personal_chat VALUES (?);'
 const SELECT_USER_CHATS = 'SELECT m1.chat_id, u.user_id, u.user_name as chat_name, u.profile_image as chat_image FROM chat_member m1 INNER JOIN chat_member m2 ON (m2.user_id = ?) INNER JOIN user u ON (u.user_id = m1.user_id) WHERE m1.chat_id = m2.chat_id and m1.user_id != m2.user_id;'
-const DELETE_PERSONAL_CHAT = ''
+const DELETE_PERSONAL_CHAT = 'DELETE FROM chat WHERE chat_id = ?'
 const INSERT_CHAT = 'INSERT INTO chat VALUES (NULL);'
 const INSERT_COMMENT_CHAT = 'INSERT INTO comments_chat VALUES (?, ?);'
 const SELECT_COMMENT_CHAT  = 'SELECT chat_id FROM comments_chat WHERE post_id = ?;'
@@ -44,6 +44,9 @@ const selectUserChats = async ({ user_id }) => {
 const createChatMember = async ({ user_id, chat_id }) => {
     await db.query(INSERT_MEMBER, [null, chat_id, user_id])
 }
+const deletePersonalChat = async ({ chat_id }) => {
+    await db.query(DELETE_PERSONAL_CHAT, [ chat_id ])
+}
 
 module.exports = {
     createChat,
@@ -53,5 +56,6 @@ module.exports = {
     selectPersonalChat,
     createPersonalChat,
     createChatMember,
+    deletePersonalChat,
 }
 

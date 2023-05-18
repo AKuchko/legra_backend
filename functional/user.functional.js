@@ -1,4 +1,4 @@
-const { selectUser, deleteUser, updateUserInfo, setUserProfileImage, createFollow, deleteFollow } = require('./common/user.func')
+const { selectUser, deleteUser, selectUsersByName, updateUserInfo, setUserProfileImage, createFollow, deleteFollow } = require('./common/user.func')
 const { createMedia, createMediaData } = require('./common/media.func')
 const { ExtractImage, ConvertToBase64 } = require('../utils/image.util')
 const io = require('../socket').getIo()
@@ -20,6 +20,16 @@ const getMe = async (req, res) => {
         const user = await selectUser({ user_id})
         if (!user) res.status(404).json({ message: '404 not found' })
         res.status(200).json(user)
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error })
+    }
+}
+const searchUsers =  async (req, res) => {
+    try {
+        const { user_name } = req.params
+        const users = await selectUsersByName({ user_name: `%${user_name}%` })
+        res.status(200).json(users)
     } catch (error) {
         console.log(error);
         res.status(500).json({ error })
@@ -96,6 +106,7 @@ const unfollowUser = async (req, res) => {
 module.exports = {
     getUser,
     getMe,
+    searchUsers,
     updateUser,
     deleteUserAccount,
     followUser,

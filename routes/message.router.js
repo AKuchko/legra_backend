@@ -3,7 +3,7 @@ const multer = require('multer')
 const router = new Router()
 const upload = multer()
 // const chatMiddleware = require('../middleware/chat.middleware')
-const { getChatMessages, createNewMessage, deleteUserMessage, editMessage } = require('../functional/message.functional')
+const { getChatMessages, createNewMessage, deleteUserMessage, editMessage, forwardMessage } = require('../functional/message.functional')
 
 const msgCreateUpload = upload.fields([ 
     { name: 'media', maxCount: 10 },
@@ -16,6 +16,7 @@ router.use(require('../middleware/auth.middleware'))
 
 router.get('/:chat_id', getChatMessages)
 router.post('/create', msgCreateUpload, createNewMessage)
+router.post('/forward', forwardMessage)
 router.put('/edit', editMessage)
 router.delete('/delete/:chat_id/:message_id', deleteUserMessage)
 

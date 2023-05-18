@@ -1,7 +1,7 @@
-const { selectUserChats, selectPersonalChat } = require('./common/chat.func')
+const { selectUserChats, selectPersonalChat, deletePersonalChat } = require('./common/chat.func')
 const { selectMessages } = require('./common/message.func')
 const { selectUser } = require('./common/user.func')
-const { selectMedia } = require('./common/media.func')
+// const { selectMedia } = require('./common/media.func')
 
 const getPesonalChat = async (req, res) => {
     try {
@@ -39,7 +39,19 @@ const getUserChats = async (req, res) => {
     }
 }
 
+const deleteUserChat = async (req, res) => {
+    try {
+        const { chat_id } = req.params
+        await deletePersonalChat({ chat_id })
+        res.status(204).json({ message: "deleted" })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ error })
+    }
+}
+
 module.exports = {
     getPesonalChat,
     getUserChats,
+    deleteUserChat,
 }

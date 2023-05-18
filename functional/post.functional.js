@@ -1,6 +1,6 @@
 const ImageUtil = require('../utils/image.util')
 const io = require('../socket').getIo()
-const { selectPosts, selectPost, createPost, selectLike, createLike, deleteLike } = require('../functional/common/post.func')
+const { selectPosts, selectPost, createPost, deletePost, selectLike, createLike, deleteLike } = require('../functional/common/post.func')
 const { createMedia, createMediaData } = require('../functional/common/media.func')
 const { createCommentChat, selectCommentChat } = require('../functional/common/chat.func')
 const { selectMessages } = require('./common/message.func')
@@ -53,12 +53,21 @@ const createNewPost =  async (req, res) => {
         res.status(500).json({ err })
     }
 }
+const deleteUserPost = async (req, res) => {
+    try {
+        const { post_id } = req.params
+        await deletePost({ post_id })
+        res.status(204).json({ message: "deleted" })
+    } catch (error) {
+        res.status(500).json({ error })
+    }
+}
 const getPostComments = async (req, res) => {
     try {
         const { post_id } = req.params
         const chat_id = await selectCommentChat({ post_id })
         const comments = await selectMessages({ chat_id })
-        res.status(200).json({ comments, chat_id })
+        res.status(200).json({ comments, chat_id, chat_name: "Comments" })
     } catch (error) {
         console.log(error)
         res.status(500).json({ error })
@@ -88,6 +97,7 @@ module.exports = {
     getUserPosts,
     getUserPost,
     createNewPost,
+    deleteUserPost,
     getPostComments,
     addLike,
 }

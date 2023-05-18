@@ -2,7 +2,7 @@ const { Router }    = require('express')
 const router        = new Router()
 const multer = require('multer')
 const upload = multer()
-const { getUser, getMe, updateUser, deleteUserAccount, followUser, unfollowUser } = require('../functional/user.functional')
+const { getUser, getMe, updateUser, deleteUserAccount, searchUsers, followUser, unfollowUser } = require('../functional/user.functional')
 const updateFields = upload.fields([
     { name: "user_name", maxCount: 1 }, 
     { name: "description", maxCount: 1 }, 
@@ -13,6 +13,7 @@ router.use(require('../middleware/auth.middleware'))
 
 router.get('/id/:user_id', getUser)
 router.get('/me', getMe)
+router.get('/find/:user_name', searchUsers)
 router.post('/follow/', followUser)
 router.put('/update', updateFields, updateUser)
 router.delete('/:user_id', deleteUserAccount)
